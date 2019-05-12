@@ -67,15 +67,25 @@ avg <- 0
 log_avg <- 0
 alphas <- 0 
 betas <- 0 
+x <- 0
+y <- 0
+valores <- 0
 
-punto3 <- function(alpha, beta, n)
+punto3 <- function(alpha, beta, n, epsilon)
 {
-	x <- replicate(500, rgamma(n,alpha,scale=beta));
-	y <- lapply(seq_len(ncol(x)), function(i) x[,i]);
+	x <<- replicate(500, rgamma(n,alpha,scale=beta));
+	y <<- lapply(seq_len(ncol(x)), function(i) x[,i]);
 
 	all_avg <- unlist(lapply(y, mean))
 	alphas <<- unlist(lapply(y, punto2))
 	betas <<- all_avg/alphas
+
+	temp <- rbind(alphas, betas)
+	aux <- lapply(seq_len(ncol(temp)), function(i) temp[,i]);
+	valores <<- n*unlist(lapply(aux, mult, alpha = alpha, beta=beta))
+	qchisq <- qchisq(1-epsilon, 2)
+
+	return(sum(valores < qchisq)/500)
 }
 
 
@@ -120,22 +130,12 @@ newton.raphson <- function(f, a, tol = 1e-5, n = 1000) {
 
 
 
+mult <- function(x, alpha, beta){
 
+	temp <- matrix(cbind(trigamma(alpha),1/beta,1/beta,alpha/beta^2),ncol=2)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	return((x-c(alpha,beta))%*%temp%*%(x-c(alpha,beta)))
+}
 
 
 
