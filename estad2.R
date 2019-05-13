@@ -59,6 +59,9 @@ main <- function()
 	}	
 }
 
+
+
+
 avg <- 0
 log_avg <- 0
 alphas <- 0 
@@ -92,7 +95,6 @@ area <- function(n)
 {
 
 	return(gm_mean(areas(n)))
-
 }
 
 areas <- function(n)
@@ -142,25 +144,23 @@ f <-function(x)
 #metodo de newton-raphson
 newton.raphson <- function(f, a, tol = 1e-5, n = 1000) {
 
-    require(numDeriv) # Package for computing f'(x)
+    require(numDeriv) 
     
-    x0 <- a # Set start value to supplied lower bound
-    k <- n # Initialize for iteration results
+    x0 <- a
+    k <- n 
      
     for (i in 1:n) {
-        dx <- genD(func = f, x = x0)$D[1] # First-order derivative f'(x0)
-        x1 <- x0 - (f(x0) / dx) # Calculate next value x1
+        dx <- genD(func = f, x = x0)$D[1] 
+        x1 <- x0 - (f(x0) / dx) 
  		k[i] <- x1
-        # Once the difference between x0 and x1 becomes sufficiently small, output the results.
         if (abs(x1 - x0) < tol) {
             root.approx <- tail(k, n=1)
             res <- root.approx
             return(res)
         }
-        # If Newton-Raphson has not yet reached convergence set x1 as x0 and continue
         x0 <- x1
     }
-    print('Too many iterations in method')
+    print('Muchas iteraciones')
 }
 
 
@@ -172,10 +172,6 @@ mult <- function(x, alpha, beta){
 
 	return((x-c(alpha,beta))%*%temp%*%(x-c(alpha,beta)))
 }
-
-
-
-
 
 
 
