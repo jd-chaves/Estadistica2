@@ -33,17 +33,17 @@ main <- function()
 	temp <- sum(!verificar(alpha, beta))
 	if(temp == 0)
 	{
-	cat("todos los valores corresponden a matrices definidas positivas (usando alpha y beta)\n");
+	cat("todos los valores corresponden a matrices definidas positivas (mirando valores propios)\n");
 	}
 	else
 	{
-	cat("no todos los valores corresponden a matrices definidas positivas (usando alpha y beta)\n");
+	cat("no todos los valores corresponden a matrices definidas positivas (mirando valores propios)\n");
 	}	
 
 	temp <- trigamma(alpha_1)*alpha_1
 	
 	plot(log(alpha_1), log(temp), type="o",col="red", 
-			xlab="log(alpha)",ylab="log(trigamma(alpha))", ylim=c(min(log(temp)),max(log(temp))));
+			xlab="log(alpha)",ylab="log(trigamma(alpha)*alpha)", ylim=c(min(log(temp)),max(log(temp))));
 
 	temp1 <- sum(temp<=0);
 
@@ -51,17 +51,13 @@ main <- function()
 	temp <- sum(!verificar(alpha, beta))
 	if(temp == 0)
 	{
-	cat("todos los valores corresponden a matrices definidas positivas (usando solo alpha) ");
+	cat("todos los valores corresponden a matrices definidas positivas (mirando trigamma*alpha) ");
 	}
 	else
 	{
-	cat("no todos los valores corresponden a matrices definidas positivas (usando solo alpha)");
+	cat("no todos los valores corresponden a matrices definidas positivas (mirando trigamma*alpha)");
 	}	
 }
-
-
-
-
 
 avg <- 0
 log_avg <- 0
@@ -71,7 +67,8 @@ x <- 0
 y <- 0
 valores <- 0
 
-punto3 <- function(alpha, beta, n, epsilon)
+#funcion que retorna el porcentaje de veces que el vector está en la elipse
+main2 <- function(alpha, beta, n, epsilon)
 {
 	x <<- replicate(500, rgamma(n,alpha,scale=beta));
 	y <<- lapply(seq_len(ncol(x)), function(i) x[,i]);
@@ -85,10 +82,47 @@ punto3 <- function(alpha, beta, n, epsilon)
 	valores <<- n*unlist(lapply(aux, mult, alpha = alpha, beta=beta))
 	qchisq <- qchisq(1-epsilon, 2)
 
-	return(sum(valores < qchisq)/500)
+	return(list( 'porcentaje' = sum(valores < qchisq)/500, 'error relativo alpha' = sd(alphas)/alpha, 'error relativo beta' = sd(betas)/beta))
 }
 
 
+gm_mean = function(a){prod(a)^(1/length(a))}
+
+area <- function(n)
+{
+
+	return(gm_mean(areas(n)))
+
+}
+
+areas <- function(n)
+{
+	x <<- replicate(500, rgamma(n,1.5,scale=4));
+	y <<- lapply(seq_len(ncol(x)), function(i) x[,i]);
+
+	all_avg <- unlist(lapply(y, mean))
+	alphas <<- unlist(lapply(y, punto2))
+	betas <<- all_avg/alphas
+
+
+	temp <- (mapply(valores, alphas, betas))
+	impar <- seq(1,999, by=2)
+	par <- seq(2,1000, by=2)
+
+	eigen1 <- temp[impar]
+	eigen2 <- temp[par]
+
+	return(pi*sqrt(qchisq(1-0.1,2)/(n*eigen1))*sqrt(qchisq(1-0.1,2)/(n*eigen2)))
+}
+
+
+valores <- function(alpha,beta)
+{
+	return(eigen(matrix(cbind(trigamma(alpha),1/beta,1/beta,alpha/beta^2),ncol=2))$values)
+}
+
+
+#aplicamos newton raphson a f con una muestra dada por parametro
 punto2 <-function(muestra)
 {
     avg <<-  mean(muestra)
@@ -98,12 +132,14 @@ punto2 <-function(muestra)
 }
 
 
+#la funcion a la que le vamos a aplicar newton raphson
 f <-function(x)
 {
 	return(log(avg)-log(x)+digamma(x)-log_avg)
 }
 
 
+#metodo de newton-raphson
 newton.raphson <- function(f, a, tol = 1e-5, n = 1000) {
 
     require(numDeriv) # Package for computing f'(x)
@@ -129,13 +165,21 @@ newton.raphson <- function(f, a, tol = 1e-5, n = 1000) {
 
 
 
-
+#funcion auxiliar para ver si el vector x cumple la condicion de estar en la elipse
 mult <- function(x, alpha, beta){
 
-	temp <- matrix(cbind(trigamma(alpha),1/beta,1/beta,alpha/beta^2),ncol=2)
+	temp <- matrix(cbind(trigamma(x[1]),1/x[2],1/x[2],x[1]/x[2]^2),ncol=2)
 
 	return((x-c(alpha,beta))%*%temp%*%(x-c(alpha,beta)))
 }
+
+
+
+
+
+
+
+
 
 
 
